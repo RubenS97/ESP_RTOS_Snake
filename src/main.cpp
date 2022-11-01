@@ -60,41 +60,14 @@ void Logic_Task(void *arg)
     // move every segment one forward
     for (int i = segments; i > 0; i--)
     {
-      // _position[i][0] = _position[i - 1][0];
-      // _position[i][1] = _position[i - 1][1];
-
       Snake.segment[i].row = Snake.segment[i - 1].row;
       Snake.segment[i].column = Snake.segment[i - 1].column;
 
       // printf("%d\t%d\t%d\n", i, _position[i][0], _position[i][1]);
     }
     // delete last field of snake
-    // field[_position[segments][0]][_position[segments][1]] = 0;
-    // lc.setLed(0, _position[segments][0], _position[segments][1], 0); // turn led off
-
     field[Snake.segment[0].row][Snake.segment[0].column] = 0;
     lc.setLed(0, Snake.segment[0].row, Snake.segment[0].column, OFF);
-
-    // // get direction/ new heading
-    // switch (direction)
-    // {
-    // // change column
-    // case right:
-    //   _position[0][1] += 1;
-    //   break;
-    // case left:
-    //   _position[0][1] -= 1;
-    //   break;
-    // // change row
-    // case up:
-    //   _position[0][0] -= 1;
-    //   break;
-    // case down:
-    //   _position[0][0] += 1;
-    //   break;
-    // default:
-    //   break;
-    // }
 
     // // get direction/ new heading
     switch (direction)
@@ -117,15 +90,6 @@ void Logic_Task(void *arg)
     }
 
     // // allow snake to loop back around at corner
-    // if (_position[0][0] > 7)
-    //   _position[0][0] = 0;
-    // if (_position[0][0] < 0)
-    //   _position[0][0] = 7;
-    // if (_position[0][1] > 7)
-    //   _position[0][1] = 0;
-    // if (_position[0][1] < 0)
-    //   _position[0][1] = 7;
-
     if (Snake.segment[0].row > 7)
       Snake.segment[0].row = 0;
     if (Snake.segment[0].row < 0)
@@ -137,34 +101,8 @@ void Logic_Task(void *arg)
 
     // logic
     // printf("Feld: %d\t %d\t %d\n", _position[0][0], _position[0][1], field[_position[0][0]][_position[0][1]]);
-    // if (field[_position[0][0]][_position[0][1]] == snake)
-    // {
-    //   Serial.printf("GameOver\n");
-    //   vTaskSuspend(NULL);
-    // }
 
-    // // detect apple
-    // if (field[_position[0][0]][_position[0][1]] == apple)
-    // {
-    //   segments += 1;
-    //   field[_position[0][0]][_position[0][1]] = snake;
-    //   random_apples();
-    // }
-
-    // // draw snake
-    // for (int i = 0; i < segments; i++)
-    // {
-    //   field[_position[i][0]][_position[i][1]] = snake;
-    // }
-    // lc.setLed(0, _position[0][0], _position[0][1], 1); // turn on new led
-
-    // if (field[_position[0][0]][_position[0][1]] == snake)
-    // {
-    //   Serial.printf("GameOver\n");
-    //   vTaskSuspend(NULL);
-    // }
-
-    // detect
+    // detect Gameover
     if (field[Snake.segment[0].row][Snake.segment[0].column] == snake)
     {
       Serial.printf("GameOver\n");
@@ -252,10 +190,6 @@ void setup()
   // put your setup code here, to run once:
 
   Serial.begin(9600);
-
-  //  init snake at 4,4
-  _position[0][0] = 4;
-  _position[0][1] = 4;
 
   //  init snake at 4,4
   Snake.segment[0].row = 4;
