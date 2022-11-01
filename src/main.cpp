@@ -39,8 +39,6 @@ struct Snake
 } Snake;
 
 int field[8][8]; // array for representing the field
-int segments = 1;
-int _position[64][2]; // position[n][0] : row, position[n][1] : column
 
 // tasks
 TaskHandle_t logicTaskHandle = NULL;
@@ -51,14 +49,10 @@ void random_apples();
 
 void Logic_Task(void *arg)
 {
-  // code for 8x8 test
-  // int t = 0;
-  // int s = 0;
-
   while (1)
   {
     // move every segment one forward
-    for (int i = segments; i > 0; i--)
+    for (int i = Snake.segments; i > 0; i--)
     {
       Snake.segment[i].row = Snake.segment[i - 1].row;
       Snake.segment[i].column = Snake.segment[i - 1].column;
@@ -66,8 +60,8 @@ void Logic_Task(void *arg)
       // printf("%d\t%d\t%d\n", i, _position[i][0], _position[i][1]);
     }
     // delete last field of snake
-    field[Snake.segment[0].row][Snake.segment[0].column] = 0;
-    lc.setLed(0, Snake.segment[0].row, Snake.segment[0].column, OFF);
+    field[Snake.segment[Snake.segments].row][Snake.segment[Snake.segments].column] = 0;
+    lc.setLed(0, Snake.segment[Snake.segments].row, Snake.segment[Snake.segments].column, OFF);
 
     // // get direction/ new heading
     switch (direction)
@@ -112,39 +106,29 @@ void Logic_Task(void *arg)
     // detect apple
     if (field[Snake.segment[0].row][Snake.segment[0].column] == apple)
     {
-      segments += 1;
+      Snake.segments += 1;
       field[Snake.segment[0].row][Snake.segment[0].column] = snake;
       random_apples();
     }
 
     // draw snake
-    for (int i = 0; i < segments; i++)
+    for (int i = 0; i < Snake.segments; i++)
     {
       field[Snake.segment[i].row][Snake.segment[i].column] = snake;
     }
-    lc.setLed(0, Snake.segment[0].row, Snake.segment[0].column, 1); // turn on new led
-
-    if (field[Snake.segment[0].row][Snake.segment[0].column] == snake)
-    {
-      Serial.printf("GameOver\n");
-      vTaskSuspend(NULL);
-    }
+    lc.setLed(0, Snake.segment[0].row, Snake.segment[0].column, ON); // turn on new led
 
     // draw field on serial monitor
-    // for (int row = 0; row < 8; row++)
-    // {
-    //   Serial.printf("row:%d\t", row);
-    //   for (int column = 0; column < 8; column++)
-    //   {
-    //     Serial.printf("%d\t", field[row][column]);
-    //     // if (field[row][column] == snake || field[row][column] == apple)
-    //     // {
-    //     //   leds += row * 8 + column;
-    //     // }
-    //   }
-    //   Serial.printf("\n");
-    // }
-    // Serial.printf("\n");
+    for (int row = 0; row < 8; row++)
+    {
+      Serial.printf("row:%d\t", row);
+      for (int column = 0; column < 8; column++)
+      {
+        Serial.printf("%d\t", field[row][column]);
+      }
+      Serial.printf("\n");
+    }
+    Serial.printf("\n");
 
     // repeat every 300 ms
     vTaskDelay(300 / portTICK_RATE_MS);
@@ -178,8 +162,8 @@ void Input_Task(void *arg)
         direction = up;
     }
 
-    Serial.printf("x:\t%d\n", xValue);
-    Serial.printf("y:\t%d\n", yValue);
+    // Serial.printf("x:\t%d\n", xValue);
+    // Serial.printf("y:\t%d\n", yValue);
 
     vTaskDelay(100 / portTICK_RATE_MS);
   }
@@ -230,10 +214,10 @@ void random_apples()
     }
   }
 
-  int k = rand() % (63 - segments + 1); // get random unoccupied position from array
+  int k = rand() % (63 - Snake.segments + 1); // get random unoccupied position from array
   // printf("apple_position\t x: y:\t%d\t%d\n", apple_position[k][0], apple_position[k][1] );
   field[apple_position[k][0]][apple_position[k][1]] = apple;
-  lc.setLed(0, apple_position[k][0], apple_position[k][1], 1); // turn on led
+  lc.setLed(0, apple_position[k][0], apple_position[k][1], ON); // turn on led
 
   return;
 }
