@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "LedControl.h"
+#include <stdio.h>
 
 // pins max7219 8x8 matrix LED
 const int pin_DIN = 23;
