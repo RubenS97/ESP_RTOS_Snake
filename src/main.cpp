@@ -13,6 +13,7 @@ LedControl lc = LedControl(pin_DIN, pin_CLK, pin_CS, 1);
 // pins adc joystick
 const int pin_X = 12;
 const int pin_Y = 14;
+const int pin_SW = 27;
 
 // movement
 int direction = 0;
@@ -41,9 +42,13 @@ struct Snake
 
 int field[8][8]; // array for representing the field
 
+int gameover = 0; // flag for gameover
+int pause_game = 0;    // flag for pause
+
 // tasks
 TaskHandle_t logicTaskHandle = NULL;
 TaskHandle_t inputTaskHandle = NULL;
+TaskHandle_t gameoverTaskHandle = NULL;
 
 // functions
 void random_apples();
@@ -140,12 +145,14 @@ void Input_Task(void *arg)
 {
   int xValue;
   int yValue;
+  int swValue;
 
   while (1)
   {
     // read analogue stick
     xValue = analogRead(pin_X);
     yValue = analogRead(pin_Y);
+    swValue = digitalRead(pin_SW);
 
     //  determine direction
     if (abs(240 - xValue) > abs(240 - yValue)) // check if swing in x or y is larger
@@ -163,10 +170,34 @@ void Input_Task(void *arg)
         direction = up;
     }
 
+    // pause game
+    // swValue == LOW --> joystick sw3itch is NC
+    // if ((swValue == LOW) && (pause_game == 0))
+    // {
+    //   pause_game = 1;
+    //   vTaskSuspend(logicTaskHandle);
+    // }
+
+    // resume game
+    if ((swValue == LOW) && (pause_game == 1))
+    {
+      pause_game = 0;
+      vTaskResume(logicTaskHandle);
+    }
+
     // Serial.printf("x:\t%d\n", xValue);
     // Serial.printf("y:\t%d\n", yValue);
+    Serial.printf("sw:\t%d\n", swValue);
 
     vTaskDelay(100 / portTICK_RATE_MS);
+  }
+}
+
+void Gameover_Task(void *arg)
+{
+  while (1)
+  {
+    vTaskDelay(300 / portTICK_RATE_MS);
   }
 }
 
@@ -183,7 +214,14 @@ void setup()
   // starting direction
   direction = right;
 
+  
+
   analogReadResolution(9);
+
+  // pin mode
+  pinMode(pin_SW, INPUT_PULLUP);
+  pinMode(pin_X, INPUT);
+  pinMode(pin_Y, INPUT);
 
   // led init
   lc.shutdown(0, false);
@@ -196,6 +234,12 @@ void setup()
 
   xTaskCreate(Logic_Task, "Logic_Task", 4096, NULL, 10, &logicTaskHandle);
   xTaskCreate(Input_Task, "Input_Task", 4096, NULL, 10, &inputTaskHandle);
+  xTaskCreate(Gameover_Task, "Gameover_Task", 4096, NULL, 10, &gameoverTaskHandle);
+
+  // pause game at start
+  pause_game = 1;
+  vTaskSuspend(logicTaskHandle);
+  vTaskSuspend(gameoverTaskHandle);
 }
 
 void random_apples()
